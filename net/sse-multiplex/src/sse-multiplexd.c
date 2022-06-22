@@ -111,6 +111,7 @@ static int run_command(const char *command) {
         }
 
         if (pid > 0) {
+                syslog(LOG_INFO, "started command `%s' (PID %d)", command, (int)pid);
                 close(pipefd[1]);
                 return pipefd[0];
         }
@@ -277,8 +278,10 @@ static provider_t * provider_new(const char *command) {
 static provider_t * provider_get(const char *command) {
         provider_t *p;
         for (p = providers; p; p = p->next) {
-                if (!strcmp(p->command, command))
+                if (!strcmp(p->command, command)) {
+                        syslog(LOG_INFO, "using existing provider for command `%s'", command);
                         return p;
+                }
         }
 
         return provider_new(command);
@@ -288,6 +291,8 @@ static provider_t * provider_get(const char *command) {
         Cleans up behind a provider, removes it from the global provider list
         and frees the provider */
 static void provider_del(provider_t *p) {
+        syslog(LOG_INFO, "deleting provider for command `%s'", p->command);
+
         if (p->next)
                 p->next->prev = p->prev;
 
